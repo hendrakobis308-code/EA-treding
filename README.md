@@ -1,39 +1,81 @@
-# EA-treding
-SND + SNR Multi Timeframe Signal (MT5 Indicator)
+//+------------------------------------------------------------------+
+//|                 EA-treding SND + SNR Indicator                   |
+//|                   Multi Timeframe Signal (MT5)                   |
+//+------------------------------------------------------------------+
+#property copyright "EA-treding"
+#property link      "https://github.com/hendrakobis308-code/EA-treding"
+#property version   "1.0"
+#property indicator_separate_window
+#property indicator_buffers 4
+#property indicator_plots   2
 
-## 📌 Deskripsi
-Indikator **Supply & Demand (SND) + Support & Resistance (SNR)** ini dibuat khusus untuk platform **MetaTrader 5 (MT5)**.  
-Tujuan utama indikator ini adalah membantu trader menemukan area penting pada chart dengan tampilan **zona historis, sinyal panah Buy/Sell, dan analisa multi-timeframe**.  
+//--- plot buy/sell signals
+#property indicator_label1  "Buy Signal"
+#property indicator_type1   DRAW_ARROW
+#property indicator_color1  clrLime
+#property indicator_width1  2
 
-Indikator ini cocok digunakan untuk berbagai gaya trading: **scalping, intraday, maupun swing**, terutama pada pair **XAUUSD (Gold)** namun tetap fleksibel untuk forex, crypto, dan indeks lainnya.  
+#property indicator_label2  "Sell Signal"
+#property indicator_type2   DRAW_ARROW
+#property indicator_color2  clrRed
+#property indicator_width2  2
 
-## ✨ Fitur Utama
-- ✅ **Multi-Timeframe**: M15, H1, H4, D1, W1, MN.  
-- ✅ **Zona Supply & Demand** otomatis dengan label harga & waktu.  
-- ✅ **Support & Resistance (SNR)** anti tumpang tindih.  
-- ✅ **Sinyal Panah Buy/Sell** berdasarkan zona + harga psikologis 0/5.  
-- ✅ **Riwayat Zona** tersimpan, tidak langsung hilang.  
+//--- buffers
+double BuyBuffer[];
+double SellBuffer[];
 
-## 📊 Simbol & Timeframe
-- Direkomendasikan untuk **XAUUSD (Gold)**.  
-- Dapat digunakan pada semua pair forex, crypto, maupun indeks.  
-- Fokus utama: **M15 & H1** untuk akurasi entry.  
+//--- settings
+input ENUM_TIMEFRAMES TimeFrame = PERIOD_H1;   // Timeframe analisa
+input int LookBackBars          = 500;         // Jumlah bar diperiksa
+input int ZoneStrength          = 3;           // Minimal sentuhan zona
+input double Sensitivity        = 0.5;         // Sensitivitas S/R
 
-## ⚙️ Cara Install
-1. Download file indikator `.mq5` dari repo ini.  
-2. Buka **MetaTrader 5** → `File` → `Open Data Folder`.  
-3. Masuk ke folder `MQL5/Indicators/`.  
-4. Copy file indikator ke folder tersebut.  
-5. Restart MT5 dan tambahkan indikator ke chart.  
+//+------------------------------------------------------------------+
+//| Custom indicator initialization                                  |
+//+------------------------------------------------------------------+
+int OnInit()
+  {
+   SetIndexBuffer(0, BuyBuffer, INDICATOR_DATA);
+   SetIndexArrow(0, 233); // Panah ke atas
+   SetIndexBuffer(1, SellBuffer, INDICATOR_DATA);
+   SetIndexArrow(1, 234); // Panah ke bawah
+   ArrayInitialize(BuyBuffer, EMPTY_VALUE);
+   ArrayInitialize(SellBuffer, EMPTY_VALUE);
+   return(INIT_SUCCEEDED);
+  }
 
-## 📌 Catatan
-- Indikator ini **bukan EA otomatis**, melainkan **alat bantu analisis visual**.  
-- Gunakan manajemen risiko dan strategi pribadi untuk konfirmasi sinyal.  
-- Hasil trading dapat berbeda tergantung kondisi market.  
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+  {
+   int start = rates_total - LookBackBars;
+   if(start < 0) start = 0;
 
-## 📷 Preview
-*(Tambahkan screenshot indikator di chart MT5 di bagian ini untuk memperjelas tampilan.)*  
+   for(int i=start; i<rates_total-1; i++)
+     {
+      // Contoh deteksi zona support
+      if(close[i] <= iLow(NULL, TimeFrame, i) + Sensitivity*Point)
+        {
+         BuyBuffer[i] = low[i] - (10 * Point);
+        }
 
----
+      // Contoh deteksi zona resistance
+      if(close[i] >= iHigh(NULL, TimeFrame, i) - Sensitivity*Point)
+        {
+         SellBuffer[i] = high[i] + (10 * Point);
+        }
+     }
 
-🚀 Dengan indikator ini, kamu bisa lebih mudah membaca **zona kuat market**, menghindari entry acak, dan meningkatkan akurasi trading.
+   return(rates_total);
+  }
+//+------------------------------------------------------------------+
