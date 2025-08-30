@@ -32,7 +32,7 @@ Indikator ini cocok digunakan untuk berbagai gaya trading: **scalping, intraday,
 - Hasil trading dapat berbeda tergantung kondisi market.  
 
 ## 📷 Preview
-*(Tambahkan screenshot indikator di chart MT5 di bagian ini untuk memperjelas tampilan.)*  
+*(<img width="1002" height="508" alt="Cuplikan layar 2025-08-30 144021" src="https://github.com/user-attachments/assets/80e21a3c-d753-45a0-947b-e5c33031ad8a" />
 
 ---
 
